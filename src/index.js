@@ -7,24 +7,28 @@ const socketio = require('socket.io');
 // const bodyParser = require('body-parser')
 // app.use(bodyParser.json());
 const server = http.createServer(app);
-const io = socketio(server);
+const io = socketio(server)
 
 const port = process.env.PORT || 3000;
 const publicDirectoryPath = path.join(__dirname, '../public')
 
 app.use(express.static(publicDirectoryPath))
 
-let count = 0;
 
-io.on('connect', (socket)=>{
-    console.log('new web socketio connection')
-    socket.emit('countUpdate', count)
+io.on('connection', (socket) => {
+  console.log('New WebSocket connection');
 
-socket.on('bt', ()=>{
-    count++
-    io.emit('countUpdate', count)
-})
+  socket.emit('message', 'Welcome!');
+  socket.broadcast.emit('message', 'A new user has joined!')
 
+
+  socket.on('sendMessage', (message) => {
+      io.emit('message', message)
+  })
+
+  socket.on('disconnect', (disc)=>{
+    io.emit('message', 'A user has left!')
+  })
 })
 
 module.exports = server.listen(port, () => {
